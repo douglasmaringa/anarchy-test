@@ -28,8 +28,6 @@ const RightComponent = ({ selectedChatroom }) => {
           // Sort messages by oldest first
           messagesData.sort((a, b) => a.timestamp - b.timestamp);
           setChatMessages(messagesData);
-           
-           scrollToBottom();
           setLoading(false);
           // Scroll to the bottom
           scrollToBottom();
@@ -102,7 +100,19 @@ const sendFakeResponse = async () => {
   return (
     <div className="flex-auto h-screen bg-gray-100 flex flex-col">
       <div className="p-4 flex-auto overflow-y-auto" ref={messagesContainerRef}>
-        <h2 className="text-lg font-semibold mb-4">Chatroom Content</h2>
+        {
+          selectedChatroom && !loading && <h2 className="text-lg font-semibold mb-4">Chatroom: {selectedChatroom}</h2>
+        }
+        {
+          !selectedChatroom &&  <p className='text-center text-xl'>No chatroom selected. Select a chatroom to start chatting.</p>
+        }
+
+        {
+          selectedChatroom && chatMessages.length === 0 && !loading && <p>No messages yet. Start the conversation!</p>
+        }
+        {
+          selectedChatroom && loading && <p>Loading messages...</p>
+        }
         {chatMessages.map(message => (
           <div
             key={message.id}
