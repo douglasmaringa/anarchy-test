@@ -1,34 +1,46 @@
 import React, { useState, useEffect } from 'react';
 import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router';
-import { collection, addDoc, query, where, getDocs } from 'firebase/firestore'; // Import Firestore functions
+import { collection, addDoc, query, where, getDocs, onSnapshot } from 'firebase/firestore'; // Import Firestore functions
 import { db } from '../firebase'; // Import Firebase app instance
 
-const LeftComponent = ({selectedChatroom,setSelectedChatroom}) => {
+const LeftComponent = ({ selectedChatroom, setSelectedChatroom }) => {
   const [chatrooms, setChatrooms] = useState([]); // State to store chatrooms
-  const [loading, setLoading] = useState(true); 
-  const [loading2, setLoading2] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [loading2, setLoading2] = useState(false); // Changed initial value to false
   const navigate = useNavigate();
 
   useEffect(() => {
     const auth = getAuth();
 
     // Subscribe to authentication state changes
-    const unsubscribe = onAuthStateChanged(auth, async user => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         //console.log('User is authenticated:', user.uid)
         try {
           const userId = user.uid;
 
-          const q = query(collection(db, 'chatrooms'), where('createdBy', '==', userId));
+          const q = query(collection(db, 'chatrooms'), where('createdBy', '==', userId),orderBy('createdAt', 'desc') // Order by createdAt in descending order
+        );
           const querySnapshot = await getDocs(q);
 
           const chatroomsData = [];
-          querySnapshot.forEach(doc => {
+          querySnapshot.forEach((doc) => {
             chatroomsData.push({ id: doc.id, ...doc.data() });
           });
 
           setChatrooms(chatroomsData);
+
+          // Real-time listener for chatrooms
+          const unsubscribeChatrooms = onSnapshot(q, (snapshot) => {
+            const updatedChatrooms = [];
+            snapshot.forEach((doc) => {
+              updatedChatrooms.push({ id: doc.id, ...doc.data() });
+            });
+            setChatrooms(updatedChatrooms);
+          });
+
+          return () => unsubscribeChatrooms();
         } catch (error) {
           console.error('Error fetching chatrooms:', error.message);
         } finally {
@@ -40,8 +52,8 @@ const LeftComponent = ({selectedChatroom,setSelectedChatroom}) => {
       }
     });
 
-    return () => unsubscribe(); 
-  }, [navigate]); 
+    return () => unsubscribe();
+  }, [navigate]);
 
   const handleLogout = async () => {
     const auth = getAuth();
@@ -76,27 +88,27 @@ const LeftComponent = ({selectedChatroom,setSelectedChatroom}) => {
     }
   };
 
-
   if (loading) {
     // Show loading indicator while fetching chatrooms
     return <div>Loading..............................</div>;
   }
 
-  const handleChatroomSelect = chatroomId => {
+  const handleChatroomSelect = (chatroomId) => {
     setSelectedChatroom(chatroomId);
   };
-
 
   return (
     <div className="flex-none w-1/6 h-screen bg-gray-200 flex flex-col">
       <button onClick={handleNewChat} className="w-full bg-green-500 text-white font-semibold py-2">
-        {
-          loading2 ? 'Creating Chatroom...' : 'New Chatroom'
-        }
+        {loading2 ? 'Creating Chatroom...' : 'New Chatroom'}
       </button>
       <ul className="overflow-y-auto flex-1">
-        {chatrooms?.map(chatroom => (
-          <li key={chatroom.id} className={`${chatroom.id === selectedChatroom ? "bg-gray-300":""} px-4 py-2 hover:bg-gray-300 cursor-pointer`} onClick={() => handleChatroomSelect(chatroom.id)}>
+        {chatrooms?.map((chatroom) => (
+          <li
+            key={chatroom.id}
+            className={`${chatroom.id === selectedChatroom ? 'bg-gray-300' : ''} px-4 py-2 hover:bg-gray-300 cursor-pointer`}
+            onClick={() => handleChatroomSelect(chatroom.id)}
+          >
             {chatroom.id}
           </li>
         ))}
