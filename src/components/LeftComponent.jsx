@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router';
-import { collection, addDoc, query, where, getDocs, onSnapshot } from 'firebase/firestore'; // Import Firestore functions
+import { collection, addDoc, query, where, getDocs, onSnapshot,orderBy } from 'firebase/firestore'; // Import Firestore functions
 import { db } from '../firebase'; // Import Firebase app instance
 
 const LeftComponent = ({ selectedChatroom, setSelectedChatroom }) => {
