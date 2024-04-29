@@ -1,16 +1,17 @@
 // Home.js
-import React from 'react';
+import React,{useState} from 'react';
 import LeftComponent from '../components/LeftComponent';
 import RightComponent from '../components/RightComponent';
 
 const Home = () => {
+  const [selectedChatroom, setSelectedChatroom] = useState(null);
   return (
     <div className="flex">
       {/* Left Component */}
-      <LeftComponent />
+      <LeftComponent selectedChatroom={selectedChatroom} setSelectedChatroom={setSelectedChatroom}/>
 
       {/* Right Component */}
-      <RightComponent />
+      <RightComponent selectedChatroom={selectedChatroom}/>
     </div>
   );
 };
